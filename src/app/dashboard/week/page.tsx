@@ -170,7 +170,7 @@ export default function WeekPage() {
                           </div>
 
                           <span className="text-gray-300 text-sm">
-                            {formatHour(t.start_time)}
+                          {formatHour((t.start_time ?? null) as string | null)}
                           </span>
                         </div>
                       ))}
