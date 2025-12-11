@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import TypewriterLogin from "@/components/typerwritter";
+import { supabase } from "@/../supabaseClient";
+
 
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from "@/components/auth/RegisterForm";
@@ -10,7 +12,17 @@ import RegisterForm from "@/components/auth/RegisterForm";
 export default function LoginPage() {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
 
+      if (data.session) {
+        window.location.href = "/dashboard/today";
+      }
+    };
+
+    checkSession();
+  }, []);
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
 
@@ -32,7 +44,7 @@ export default function LoginPage() {
       <div
         className={`
           absolute left-0 w-full z-20 transition-transform duration-500 ease-out
-          ${(showLoginForm || showRegisterForm) ? "translate-y-[-50%]" : "translate-y-0"}
+          ${(showLoginForm || showRegisterForm) ? "translate-y-[-10%]" : "translate-y-0"}
         `}
         style={{ bottom: 0 }}
       >
@@ -52,13 +64,18 @@ export default function LoginPage() {
           {/* BOTONES PRINCIPALES */}
           {!showLoginForm && !showRegisterForm && (
             <>
-              <button className="w-full bg-white text-black font-medium py-3 rounded-full flex items-center justify-center gap-2 mb-4">
-                <Image
-                  src="https://www.svgrepo.com/show/475656/google-color.svg"
-                  alt="google logo"
-                  width={20}
-                  height={20}
-                />
+              <button
+                onClick={async () => {
+                  await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                      redirectTo: "http://localhost:3000/auth/callback",
+                    },
+                  });
+                }}
+                className="w-full bg-white text-black font-medium py-3 rounded-full flex items-center justify-center gap-2 mb-4"
+              >
+                <Image alt="imagen de google" src="https://www.svgrepo.com/show/475656/google-color.svg" width={20} height={20} />
                 Continuar con Google
               </button>
 
@@ -68,6 +85,7 @@ export default function LoginPage() {
               >
                 Registrarse
               </button>
+
 
               <button
                 onClick={() => setShowLoginForm(true)}

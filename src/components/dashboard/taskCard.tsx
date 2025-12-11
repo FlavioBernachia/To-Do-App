@@ -1,98 +1,101 @@
 "use client";
-import { useSwipeable } from "react-swipeable";
-import { useState } from "react";
-
-interface Task {
-  text: string;
-  start: string;
-  end: string;
-  tags: string[];
-  note: string;
-  priority: string;
-}
+import { motion } from "framer-motion";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { Task } from "@/types/task";
 
 export default function TaskCard({
-
   task,
-  onComplete,
-  onDelete
+  onDelete,
+  onToggleComplete,
+  onEdit,
 }: {
   task: Task;
-  onComplete: () => void;
-  onDelete: any;
+  onDelete: () => void;
+  onToggleComplete: () => void;
+  onEdit: () => void;
 }) {
-  const [done, setDone] = useState(false);
-
-  const handleComplete = () => {
-    setDone(!done);
-    onComplete();
+  const priorityColor = {
+    alta: "text-red-400 bg-red-400/10",
+    medio: "text-yellow-400 bg-yellow-400/10",
+    baja: "text-green-400 bg-green-400/10",
   };
-  const handlers = useSwipeable({
-    onSwipedLeft: () => onDelete(),
-    onSwipedRight: () => onComplete(),
-  });
+
   return (
-    <div {...handlers}
-      className={`
-        relative bg-[#111] border border-gray-700 rounded-2xl p-4 mb-3 
-        transition-all
-        ${done ? "opacity-50 scale-[0.97]" : "opacity-100"}
-      `}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className="
+        relative w-full 
+        bg-[#151515] rounded-2xl 
+        p-4 shadow-[0_0_12px_rgba(0,0,0,0.35)]
+        border border-[#2c2c2c]
+      "
     >
-      {/* CHECK + TITULO */}
       <div className="flex items-start gap-3">
+
+        {/* CHECK (iOS style) */}
         <button
-          onClick={handleComplete}
+          onClick={onToggleComplete}
           className={`
-            w-6 h-6 rounded-full border 
-            flex items-center justify-center
-            ${done ? "bg-pink-500 border-pink-500" : "border-gray-500"}
+            min-w-[26px] min-h-[26px] rounded-full flex items-center justify-center
+            border transition
+            ${task.completed 
+              ? "bg-pink-500 border-pink-500 text-white" 
+              : "border-gray-500 bg-transparent"
+            }
           `}
         >
-          {done ? "✔" : ""}
+          {task.completed ? "✔" : ""}
         </button>
 
+        {/* CONTENT */}
         <div className="flex-1">
+          {/* TÍTULO */}
           <h3
             className={`
-              text-lg font-semibold 
-              ${done ? "line-through text-gray-400" : "text-white"}
+              font-semibold text-[17px] leading-tight
+              ${task.completed ? "line-through text-gray-500" : "text-white"}
             `}
           >
             {task.text}
           </h3>
 
+          {/* Prioridad */}
+          <span
+            className={`
+              inline-flex items-center gap-1 px-2 py-1 mt-2 rounded-lg text-xs font-medium
+              ${priorityColor[task.priority]}
+            `}
+          >
+            <span className="inline-block w-[7px] h-[7px] rounded-full bg-current"></span>
+            {task.priority === "alta" && "High Priority"}
+            {task.priority === "medio" && "Medium"}
+            {task.priority === "baja" && "Low"}
+          </span>
+
           {/* HORARIO */}
           {(task.start || task.end) && (
-            <p className="text-gray-400 text-sm mt-1">
-              {task.start} - {task.end}
+            <p className="text-gray-400 text-sm mt-2">
+              {task.start} — {task.end}
             </p>
           )}
 
           {/* NOTA */}
           {task.note && (
-            <p className="text-gray-300 text-sm mt-2 italic">{task.note}</p>
+            <p className="text-gray-400 text-sm mt-2 leading-snug">
+              {task.note}
+            </p>
           )}
 
-{task.priority && (
-  <span
-    className={`
-      px-2 py-1 rounded-lg text-xs text-black font-semibold
-      ${task.priority === "alta" ? "bg-red-500" : ""}
-      ${task.priority === "medio" ? "bg-yellow-500" : ""}
-      ${task.priority === "baja" ? "bg-green-500" : ""}
-    `}
-  >
-    {task.priority}
-  </span>
-)}
           {/* TAGS */}
           {task.tags.length > 0 && (
-            <div className="flex gap-2 mt-2 flex-wrap">
+            <div className="flex flex-wrap gap-1.5 mt-3">
               {task.tags.map((tag, i) => (
                 <span
                   key={i}
-                  className="px-2 py-1 bg-pink-600 rounded-lg text-xs"
+                  className="px-2 py-1 rounded-lg bg-pink-600/20 text-pink-400 text-xs"
                 >
                   {tag}
                 </span>
@@ -100,14 +103,36 @@ export default function TaskCard({
             </div>
           )}
         </div>
-      </div>
 
-      {/* OPCIONES */}
-      {!done && (
-        <button className="text-pink-400 text-sm mt-3">
-          Mover a mañana
-        </button>
-      )}
-    </div>
+        {/* BOTONES */}
+        <div className="flex flex-col gap-2 ml-2">
+
+          <button
+            onClick={onEdit}
+            className="
+              w-9 h-9 flex items-center justify-center rounded-full
+              bg-[#222] border border-gray-600 text-gray-300
+              hover:bg-pink-600 hover:text-white hover:border-pink-600
+              transition
+            "
+          >
+            <FiEdit2 size={16} />
+          </button>
+
+          <button
+            onClick={onDelete}
+            className="
+              w-9 h-9 flex items-center justify-center rounded-full
+              bg-[#222] border border-gray-600 text-gray-300
+              hover:bg-red-600 hover:text-white hover:border-red-600
+              transition
+            "
+          >
+            <FiTrash2 size={16} />
+          </button>
+        </div>
+
+      </div>
+    </motion.div>
   );
 }

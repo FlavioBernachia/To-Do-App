@@ -1,11 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface Task {
+  id: string;
   text: string;
   start: string;
   end: string;
   tags: string[];
   note: string;
+  completed: boolean; // ← AGREGADO
 }
 
 export default function DaySummary({
@@ -19,13 +23,12 @@ export default function DaySummary({
 }) {
   const allTasks = [...morning, ...afternoon, ...night];
 
-  // TEMPORAL: no implementamos "done" aún
-  // por ahora total completadas = 0
-  // cuando hagamos swipe/completado real, lo conectamos aquí
-  const completed = 0;
-
+  // ⭐ AHORA SÍ contamos tareas completas
+  const completed = allTasks.filter((t) => t.completed === true).length;
   const total = allTasks.length;
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const percentage =
+    total > 0 ? Math.round((completed / total) * 100) : 0;
 
   const getMessage = () => {
     if (percentage === 0) return "Empecemos el día ✨";
@@ -35,20 +38,28 @@ export default function DaySummary({
     return "¡Día completado! 🎉";
   };
 
-  // Fecha formateada
-  const today = new Date().toLocaleDateString("es-AR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  // ⭐ Para evitar hydration mismatch → la fecha se calcula en client-side
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    const d = new Date().toLocaleDateString("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
+    // primera letra mayúscula
+    setToday(d.charAt(0).toUpperCase() + d.slice(1));
+  }, []);
 
   return (
-    <div className="
-      bg-[#111]/70 backdrop-blur-md 
-      border border-gray-700 
-      rounded-2xl p-5 mb-6
-      shadow-lg
-    ">
+    <div
+      className="
+        bg-[#111]/70 backdrop-blur-md 
+        border border-gray-700 
+        rounded-2xl p-5 mb-6 shadow-lg
+      "
+    >
       <h2 className="text-xl text-white font-semibold capitalize">
         Hoy • {today}
       </h2>
@@ -58,10 +69,10 @@ export default function DaySummary({
         Progreso: {completed} / {total}
       </p>
 
-      {/* BARRA DE PROGRESO */}
+      {/* BARRA */}
       <div className="w-full bg-gray-700 h-2 rounded-full mt-2">
         <div
-          className="h-full bg-pink-500 rounded-full transition-all"
+          className="h-full bg-pink-500 rounded-full transition-all duration-300"
           style={{
             width: `${percentage}%`,
           }}
