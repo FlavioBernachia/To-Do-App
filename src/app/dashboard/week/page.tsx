@@ -35,7 +35,7 @@ function getNext7Days() {
   return arr;
 }
 
-function formatHour(t: string | null | undefined) {
+function formatHour(t?: string | null) {
   if (!t) return "";
   return t.slice(0, 5);
 }
